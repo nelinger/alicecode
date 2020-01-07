@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sudoku</title>
+<body>
+<script id="rendered-js">
+
+  // Global config
+  var boxSize = 3;
+  var boardSize = Math.pow(boxSize, 2);
+  var board = [];
+
+  // Creates an empty board (all cells are filled with zeros)
+  function createEmptyBoard() {
+    for (var row = 0; row < boardSize; row++) {
+      board[row] = [];
+      for (var column = 0; column < boardSize; column++) {
+        board[row][column] = 0;
+      }
+    }
+  }
+
+  // Gets the box ID.
+  function getBoxId(row, column) {
+    return boxSize*Math.floor(row/boxSize) +
+      Math.floor(column/boxSize);
+  }
+
+  // Returns a (randomally shuffled) array of candidates for a cell.
+  function getCandidatesForCell(row, column) {
+    var candidates = new Set();
+    for (var i = 0; i < boardSize; i++) {
+      candidates.add(i+1);
+    }
+    for (var r = 0; r < boardSize; r++) {
+      for (var c = 0; c < boardSize; c++) {
+        if (row == r || column == c ||
+            getBoxId(row, column) == getBoxId(r, c)) {
+          candidates.delete(board[r][c]);
+        }
+      }
+    }
+    return shuffle(Array.from(candidates));
+  }
+
+  // Picks a random candidate from candidates set.
+  function randomallyPickFromCandidates(candidates) {
+    var candidatesArray = Array.from(candidates);
+    return candidatesArray[Math.floor(Math.random()*candidatesArray.length)];
+  }
+
+  // Returns the 'next' empty cell as {r: <index>, c: <index>}
+  // or undefined if no empty cells.
+  function getEmptyCellIndex() {
+    for (var row = 0; row < boardSize; row++) {
+      for (var column = 0; column < boardSize; column++) {
+        if (board[row][column] == 0) {
+          return {
+            r: row,
+            c: column
+          }
+        }
+      }
+    }
+    return undefined;
+  }
+
+  // Prints the board.
+  function printBoardToConsole() {
+    console.log("_____________________________");
+    for (var row = 0; row < boardSize; row++) {
+      console.log(board[row]);
+    }
+  }
+
+  // Shuffles an array in-place.
+  function shuffle(arr) {
+    var j, x, i;
+    for (i = arr.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = arr[i];
+        arr[i] = arr[j];
+        arr[j] = x;
+    }
+    return arr;
+  }
+
+  function fillBoard() {
+    printBoardToConsole();
+    var cellIndex = getEmptyCellIndex();
+    if (!cellIndex) {
+      return true;
+    }
+
+    var candidates = getCandidatesForCell(cellIndex.r, cellIndex.c);
+    for (candidate of candidates) {
+      board[cellIndex.r][cellIndex.c] = candidate;
+      if (fillBoard()) {
+        return true;
+      }
+      board[cellIndex.r][cellIndex.c] = 0;
+    }
+    console.warn('Dead end, trace back.');
+    return false;
+  }
+
+  // Program:
+  createEmptyBoard();
+
+  if (!fillBoard()) {
+    console.error('Could not fill board - should never happen.');
+  } else {
+    console.log('Done.')
+  }
+
+</script>
+</body>
+</html>
