@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sudoku</title>
+<style type="text/css">
+  .cell {
+    background-color: antiquewhite;
+    border: 1px solid black;
+    display: flex;
+    width: 80px;
+    height: 80px;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+  }
+
+  .row0 {
+    top: 20px;
+  }
+
+  .row1 {
+    top: 120px;
+  }
+
+  .row2 {
+    top: 220px;
+  }
+
+  .row3 {
+    top: 320px;
+  }
+
+  .row4 {
+    top: 420px;
+  }
+
+  .row5 {
+    top: 520px;
+  }
+
+  .row6 {
+    top: 620px;
+  }
+
+  .row7 {
+    top: 720px;
+  }
+
+  .row8 {
+    top: 820px;
+  }
+
+
+
+  .column0 {
+    left: 20px;
+  }
+
+  .column1 {
+    left: 120px;
+  }
+
+  .column2 {
+    left: 220px;
+  }
+
+  .column3 {
+    left: 320px;
+  }
+
+  .column4 {
+    left: 420px;
+  }
+
+  .column5 {
+    left: 520px;
+  }
+
+  .column6 {
+    left: 620px;
+  }
+
+  .column7 {
+    left: 720px;
+  }
+
+  .column8 {
+    left: 820px;
+  }
+
+</style>
+</head>
+<body>
+
+
+</body>
+<script id="rendered-js">
+
+  var sleep = 0;
+
+  // UI handlers
+
+  function drawBoard() {
+    for (var row = 0; row < boardSize; row++) {
+      for (var column = 0; column < boardSize; column++) {
+        var editable = document.createElement("div");
+        editable.setAttribute('contenteditable', true)
+        var cell = document.createElement("div");
+        cell.setAttribute('class', "cell row" + row + " column" + column);
+
+        cell.appendChild(editable);
+
+        document.body.appendChild(cell);
+      }
+    }
+  }
+
+  function getCellElement(row, column) {
+    return document.querySelector(".row" + row + ".column" + column + "  div");
+  }
+
+  function updateCell(row, column, value) {
+    sleep = sleep + 200;
+    var cellContainerElement = document.querySelector(".row" + row + ".column" + column);
+    var cellElement = document.querySelector(".row" + row + ".column" + column + "  div");
+    cellElement.innerText = value;
+    setTimeout(function(){ 
+      if (value == "") { 
+        cellContainerElement.style.border = "3px red solid"; 
+      } else {
+        cellContainerElement.style.border = "3px green solid";
+      }
+    }, sleep);
+
+  }  
+
+  // Global config
+  var boxSize = 3;
+  var boardSize = Math.pow(boxSize, 2);
+
+  // Gets the box ID.
+  function getBoxId(row, column) {
+    return boxSize*Math.floor(row/boxSize) +
+      Math.floor(column/boxSize);
+  }
+
+  // Returns a (randomally shuffled) array of candidates for a cell.
+  function getCandidatesForCell(row, column) {
+    var candidates = new Set();
+    for (var i = 0; i < boardSize; i++) {
+      candidates.add(i+1);
+    }
+    for (var r = 0; r < boardSize; r++) {
+      for (var c = 0; c < boardSize; c++) {
+        if (row == r || column == c ||
+            getBoxId(row, column) == getBoxId(r, c)) {
+          candidates.delete(parseInt(getCellElement(r, c).innerText));
+        }
+      }
+    }
+    return shuffle(Array.from(candidates));
+  }
+
+  // Picks a random candidate from candidates set.
+  function randomallyPickFromCandidates(candidates) {
+    var candidatesArray = Array.from(candidates);
+    return candidatesArray[Math.floor(Math.random()*candidatesArray.length)];
+  }
+
+  // Returns the 'next' empty cell as {r: <index>, c: <index>}
+  // or undefined if no empty cells.
+  function getNextCell(cellIndex) {
+    if (cellIndex.c < boardSize - 1) {
+      return {
+        r: cellIndex.r,
+        c: cellIndex.c + 1
+      }
+    }
+
+    return {
+      r: cellIndex.r + 1,
+      c: 0
+    }
+  }
+
+  // Shuffles an array in-place.
+  function shuffle(arr) {
+    var j, x, i;
+    for (i = arr.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = arr[i];
+        arr[i] = arr[j];
+        arr[j] = x;
+    }
+    return arr;
+  }
+
+  function fillBoard(cellIndex) {
+    if (cellIndex.r == boardSize) {
+      return true;
+    }
+
+    var candidates = getCandidatesForCell(cellIndex.r, cellIndex.c);
+    for (candidate of candidates) {
+      updateCell(cellIndex.r, cellIndex.c, candidate);
+      if (fillBoard(getNextCell(cellIndex))) {
+        return true;
+      }
+      updateCell(cellIndex.r, cellIndex.c, "");
+    }
+    return false;
+  }
+
+  drawBoard();
+
+  fillBoard({
+            r: 0,
+            c: 0
+          });
+  
+</script>
+</html>
